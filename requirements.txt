@@ -1,0 +1,17 @@
+# LoRA reproduction — DistilBERT + SST-2
+# Tested with Python 3.10–3.12. Install on Colab or in a venv:
+#   pip install -r requirements.txt
+# On a CPU-only machine, install torch from the CPU wheel index first:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+
+torch>=2.2,<3.0
+transformers>=4.40,<5.0
+peft>=0.10,<1.0
+datasets>=2.19,<4.0
+accelerate>=0.30,<1.0
+scikit-learn>=1.4,<2.0
+pandas>=2.0,<3.0
+matplotlib>=3.8,<4.0
+numpy>=1.26,<3.0
+evaluate>=0.4,<1.0

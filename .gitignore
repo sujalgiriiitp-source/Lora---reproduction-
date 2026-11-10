@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Training outputs (checkpoints are large; logs are the record)
+runs/
+checkpoints/
+*.pt
+*.bin
+*.safetensors
+
+# Hugging Face / datasets cache (downloaded, not source)
+.cache/
+*.arrow
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

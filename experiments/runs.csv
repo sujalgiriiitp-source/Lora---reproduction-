@@ -1,0 +1,1 @@
+run_id,date,dataset,model,mode,lora_r,lora_alpha,epochs,train_examples,batch_size,learning_rate,seed,trainable_params,total_params,accuracy,f1_macro,train_time_sec,device,notes
