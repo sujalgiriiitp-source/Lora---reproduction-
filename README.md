@@ -26,21 +26,32 @@ Every run logs accuracy, F1, trainable-parameter count, and training time to
 
 ## Results
 
-> **Status: reproduction in progress — full runs not yet complete.**
-> The table below will be filled only from real Colab GPU runs. No numbers
-> are claimed until then. The planned smoke test (200 examples,
-> 1 epoch, CPU) has **not run yet** — it was blocked before starting —
-> so the pipeline is not yet proven end to end. See
-> [`SMOKE_TEST_LOG.md`](SMOKE_TEST_LOG.md).
+> **Status: full runs complete — 11 Nov 2026, Colab T4 GPU.**
+> Every number below is copied from [`experiments/runs.csv`](experiments/runs.csv).
+> The planned smoke test (200 examples, 1 epoch, CPU) was never run — the
+> full runs superseded it. See [`SMOKE_TEST_LOG.md`](SMOKE_TEST_LOG.md).
 
 | Run | Model | Trainable params | Accuracy | F1 | Train time |
 | --- | --- | --- | --- | --- | --- |
-| Full FT | DistilBERT | — | — | — | — |
-| LoRA r=4 | DistilBERT + LoRA | — | — | — | — |
-| LoRA r=8 | DistilBERT + LoRA | — | — | — | — |
-| LoRA r=16 | DistilBERT + LoRA | — | — | — | — |
+| Full FT | DistilBERT | 66,955,010 (100%) | 0.9106 | 0.9104 | 689.6 s |
+| LoRA r=4 | DistilBERT + LoRA | 665,858 (0.99%) | 0.8911 | 0.8910 | 466.0 s |
+| LoRA r=8 | DistilBERT + LoRA | 739,586 (1.10%) | 0.8922 | 0.8921 | 504.2 s |
+| LoRA r=16 | DistilBERT + LoRA | 887,042 (1.32%) | 0.8968 | 0.8966 | 480.6 s |
 
-Planned full-run settings: SST-2 train (67,349 examples), validation
+Accuracy rises with rank (r=4 → 0.8911, r=8 → 0.8922, r=16 → 0.8968, full
+→ 0.9106). The closest rank, r=16, matches full fine-tuning within
+1.38 percentage points using 1.32% of the trainable parameters. Gaps
+between adjacent ranks are small (validation set: 872 examples), so only
+the rank ordering — not the small gaps — is claimed.
+
+![Accuracy vs LoRA rank](experiments/figures/accuracy-vs-rank.png)
+![Accuracy vs trainable parameters](experiments/figures/params-vs-accuracy.png)
+
+Figures are generated from `experiments/runs.csv` by
+[`scripts/plot_ablation.py`](scripts/plot_ablation.py) — re-run it after
+new rows arrive.
+
+Full-run settings: SST-2 train (67,349 examples), validation
 (872 examples), 3 epochs, batch size 32, learning rate 2e-5 (full) /
 1e-4 (LoRA), max sequence length 128, seed 42. See
 [`experiments/README.md`](experiments/README.md) for the exact columns.
