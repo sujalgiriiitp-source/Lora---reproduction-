@@ -26,7 +26,7 @@ Every run logs accuracy, F1, trainable-parameter count, and training time to
 
 ## Results
 
-> **Status: full runs complete — 11 Nov 2026, Colab T4 GPU.**
+> **Status: 9 runs complete — 11 Nov 2026, Colab T4 GPU.**
 > Every number below is copied from [`experiments/runs.csv`](experiments/runs.csv).
 > The planned smoke test (200 examples, 1 epoch, CPU) was never run — the
 > full runs superseded it. See [`SMOKE_TEST_LOG.md`](SMOKE_TEST_LOG.md).
@@ -44,8 +44,34 @@ Accuracy rises with rank (r=4 → 0.8911, r=8 → 0.8922, r=16 → 0.8968, full
 between adjacent ranks are small (validation set: 872 examples), so only
 the rank ordering — not the small gaps — is claimed.
 
+### Extensions (same day, same setup)
+
+| Run | Setting | Trainable params | Accuracy | F1 | Train time |
+| --- | --- | --- | --- | --- | --- |
+| Full FT, seed 123 | SST-2 | 66,955,010 (100%) | 0.9083 | 0.9081 | 737.0 s |
+| LoRA r=16, seed 123 | SST-2 | 887,042 (1.32%) | 0.8842 | 0.8840 | 510.6 s |
+| Full FT | AG News (test 7,600) | 66,956,548 (100%) | 0.9467 | 0.9467 | 3,296.8 s |
+| LoRA r=16 | AG News (test 7,600) | 888,580 (1.31%) | 0.9346 | 0.9346 | 2,457.2 s |
+| LoRA r=16, all-linear | SST-2 | 1,919,234 (2.79%) | 0.9071 | 0.9070 | 639.0 s |
+
+**What the extensions show:**
+
+- **Seed stability (honest correction to the headline):** the full-vs-r16
+  gap is 1.38pp at seed 42 but 2.41pp at seed 123 (r16: 0.8968 → 0.8842).
+  The "within 1.38pp" headline is a seed-42 number, not a stable property
+  — across the two seeds the gap is 1.4–2.4pp (mean ≈ 1.9pp).
+- **All-linear LoRA closes most of the gap:** targeting all linear layers
+  (`q_lin, k_lin, v_lin, out_lin, lin1, lin2`) at r=16 reaches 0.9071 —
+  1.03pp above q/v-only r=16 and only 0.35pp below full fine-tuning —
+  with 1.92M trainable parameters (2.79%).
+- **The rank result generalises to AG News:** full 0.9467 vs LoRA r=16
+  0.9346, a 1.21pp gap — same order as SST-2, on a 4-class task with
+  120,000 training examples.
+
 ![Accuracy vs LoRA rank](experiments/figures/accuracy-vs-rank.png)
 ![Accuracy vs trainable parameters](experiments/figures/params-vs-accuracy.png)
+![Seed stability](experiments/figures/seed-stability.png)
+![Extensions](experiments/figures/extensions.png)
 
 Figures are generated from `experiments/runs.csv` by
 [`scripts/plot_ablation.py`](scripts/plot_ablation.py) — re-run it after
@@ -53,8 +79,24 @@ new rows arrive.
 
 Full-run settings: SST-2 train (67,349 examples), validation
 (872 examples), 3 epochs, batch size 32, learning rate 2e-5 (full) /
-1e-4 (LoRA), max sequence length 128, seed 42. See
+1e-4 (LoRA), max sequence length 128, seed 42 (seed 123 for the repeat).
+AG News: train 120,000, test 7,600, same epochs/batch/lr. See
 [`experiments/README.md`](experiments/README.md) for the exact columns.
+
+**Provenance note (11 Nov 2026):** the extension session's GPU VM
+disconnected after the last run, so `experiments/runs.csv` was rebuilt
+from the trainer outputs saved in the session notebook (Drive,
+`05-extension-runs.ipynb`). Rows 1–4 are the original log; rows 5–9 are
+the rebuilt rows. Two transcription errors in the rebuilt copy's old rows
+were corrected against the original log (r=8 total params, r=4 F1). The
+all-linear run's `notes` field was restored from the flag it provably
+used (1,919,234 trainable params). No accuracy number was estimated or
+adjusted.
+
+**Environment note (11 Nov 2026):** on Colab, `requirements.txt`'s
+`accelerate<1.0` broke with transformers 4.57.6 (upgraded to 1.15.0) and
+torchao 0.10.0 broke peft 0.21.2 (removed). `requirements.txt` now pins
+`accelerate>=1.0,<2.0`.
 
 ## Why this project exists
 
