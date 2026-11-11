@@ -2,7 +2,7 @@
 
 **Author:** Sujal Giri — B.Tech CSE (SIET, 2028) · B.S. Computer Science &
 Data Analytics (IIT Patna, 2029)
-**Date:** November 2026 (draft — results pending full runs)
+**Date:** November 2026 (results completed 11 Nov 2026, Colab T4 GPU)
 **Code:** https://github.com/sujalgiriiitp-source/Lora---reproduction-
 **Paper reproduced:** Hu et al., *LoRA: Low-Rank Adaptation of Large
 Language Models*, ICLR 2022 (arXiv:2106.09685)
@@ -53,25 +53,30 @@ entry point for all four runs so that only `mode` / `r` differ.
 
 ## 3. Results
 
-> **TO BE FILLED FROM REAL RUN — no numbers claimed yet.**
-> The full runs (3 epochs on SST-2, Colab T4 GPU) have not been completed.
-> The table below is the exact shape the results will take; every cell
-> will be copied from `experiments/runs.csv` once the runs exist. The
-> CPU smoke test in this repo (200 examples, 1 epoch) proves only that
-> the code runs end to end and is not reported here as a result.
+> **Runs completed 11 Nov 2026 on a Colab T4 GPU.** Every cell below is
+> copied from `experiments/runs.csv` (DistilBERT, SST-2, 3 epochs, batch
+> 32, seed 42; validation split, 872 examples). The CPU smoke test in
+> this repo was never run and is not reported here.
 
 | Run | Trainable params | Accuracy | F1 (macro) | Train time |
 | --- | --- | --- | --- | --- |
-| Full fine-tuning | — | — | — | — |
-| LoRA r=4 | — | — | — | — |
-| LoRA r=8 | — | — | — | — |
-| LoRA r=16 | — | — | — | — |
+| Full fine-tuning | 66,955,010 (100%) | 0.9106 | 0.9104 | 689.6 s |
+| LoRA r=4 | 665,858 (0.99%) | 0.8911 | 0.8910 | 466.0 s |
+| LoRA r=8 | 739,586 (1.10%) | 0.8922 | 0.8921 | 504.2 s |
+| LoRA r=16 | 887,042 (1.32%) | 0.8968 | 0.8966 | 480.6 s |
 
-**What I will conclude from these numbers (once real):** whether accuracy
-rises with rank and where it plateaus; whether any LoRA rank matches full
-fine-tuning within ~1 percentage point; and what fraction of parameters
-each rank needed to get there. If LoRA underperforms, that is reported as
-it is — a negative result is still a result.
+**What these numbers show:** accuracy rises monotonically with rank
+(0.8911 → 0.8922 → 0.8968 → 0.9106), but no LoRA rank matches full
+fine-tuning within 1 percentage point — the closest, r=16, is 1.38pp
+below full while using 1.32% of the trainable parameters. The gaps
+between adjacent ranks (0.11pp, 0.46pp) are within noise for an
+872-example validation set, so they are not claimed as wins — only the
+rank ordering is. LoRA also trained faster than full fine-tuning in
+every case (466–504 s vs 689.6 s), though that comparison mixes
+trainable-parameter count with optimiser overhead and is not the
+study's main claim. The honest headline: LoRA gets most of the way
+there for ~1% of the parameters, but on this setup it does not fully
+close the gap.
 
 ## 4. Limitations
 
@@ -91,8 +96,9 @@ it is — a negative result is still a result.
 
 ## 5. Next steps
 
-1. Complete the four full runs on a Colab T4 GPU and fill in Section 3
-   from `experiments/runs.csv`.
+1. ~~Complete the four full runs on a Colab T4 GPU and fill in Section 3
+   from `experiments/runs.csv`.~~ **Done 11 Nov 2026** — all four runs
+   finished, Section 3 filled from `experiments/runs.csv`.
 2. Repeat the best LoRA rank with a second seed to check stability.
 3. Try one extension — e.g. LoRA on all linear layers, or rank varying
    per layer — and report whether it helps or not.
@@ -101,12 +107,12 @@ it is — a negative result is still a result.
 
 ---
 
-**Resume bullet (fill in only after the real runs):**
+**Resume bullet (filled from the real runs, 11 Nov 2026):**
 
 > "Reproduced LoRA (Hu et al., 2021) on DistilBERT + SST-2: matched full
-> fine-tuning within [X]pp using [Y]% of trainable parameters (rank r=[R]);
+> fine-tuning within 1.38pp using 1.32% of trainable parameters (rank r=16);
 > ran a rank ablation (r=4/8/16) and reported accuracy, F1, and training
 > time for each setting."
 
-The `[X]`, `[Y]`, and `[R]` placeholders must be replaced with the real
-numbers from `experiments/runs.csv` — never with estimates.
+All numbers from `experiments/runs.csv` — full fine-tuning 0.9106 accuracy
+(66,955,010 trainable params); LoRA r=16 0.8968 accuracy (887,042 params).
