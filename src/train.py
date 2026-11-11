@@ -55,6 +55,10 @@ def parse_args() -> argparse.Namespace:
                         help="'full' = update all weights; 'lora' = adapters only.")
     parser.add_argument("--r", type=int, default=8,
                         help="LoRA rank (only used when --mode lora). Default: 8.")
+    parser.add_argument("--target-modules", default="q_lin,v_lin",
+                        help="Comma-separated LoRA target modules. Default: "
+                        "q_lin,v_lin (attention only). Use "
+                        "q_lin,k_lin,v_lin,out_lin,lin1,lin2 for all linear layers.")
     parser.add_argument("--dataset", choices=list(DATASET_CONFIGS), default="sst2",
                         help="sst2 (default) or ag_news (documented fallback).")
     parser.add_argument("--epochs", type=float, default=3.0)
@@ -102,19 +106,24 @@ def main() -> None:
     def tokenize(batch):
         return tokenizer(batch[text_col], truncation=True, max_length=args.max_len)
 
-    train_tok = train_ds.map(tokenize, batched=True, remove_columns=train_ds.column_names)
-    eval_tok = eval_ds.map(tokenize, batched=True, remove_columns=eval_ds.column_names)
+    # NOTE (11 Nov 2026): remove_columns MUST stay [] — removing all columns
+    # also drops the label, and the Trainer then fails with "The model did
+    # not return a loss from the inputs, only logits". The Trainer drops
+    # unused columns itself; the label column is kept here.
+    train_tok = train_ds.map(tokenize, batched=True, remove_columns=[])
+    eval_tok = eval_ds.map(tokenize, batched=True, remove_columns=[])
 
     # --- Model --------------------------------------------------------
     model = AutoModelForSequenceClassification.from_pretrained(
         MODEL_NAME, num_labels=num_labels
     )
     if args.mode == "lora":
+        target_modules = [m.strip() for m in args.target_modules.split(",") if m.strip()]
         config = LoraConfig(
             r=args.r,
             lora_alpha=2 * args.r,      # paper convention: alpha / r scaling
             lora_dropout=0.1,
-            target_modules=["q_lin", "v_lin"],  # DistilBERT attention
+            target_modules=target_modules,
             task_type=TaskType.SEQ_CLS,
         )
         model = get_peft_model(model, config)
@@ -167,6 +176,11 @@ def main() -> None:
     trainer.save_model(str(out))
     tokenizer.save_pretrained(str(out))
 
+    notes_parts = []
+    if args.max_train:
+        notes_parts.append("smoke test")
+    if args.mode == "lora" and args.target_modules != "q_lin,v_lin":
+        notes_parts.append(f"target={args.target_modules}")
     log_run(args.runs_csv, {
         "run_id": run_id,
         "date": date.today().isoformat(),
@@ -186,7 +200,7 @@ def main() -> None:
         "f1_macro": round(f1, 4),
         "train_time_sec": round(train_time, 1),
         "device": device,
-        "notes": "smoke test" if args.max_train else "",
+        "notes": "; ".join(notes_parts),
     })
     print(f"[log] row appended to {args.runs_csv}")
 
