@@ -1,1 +1,5 @@
 run_id,date,dataset,model,mode,lora_r,lora_alpha,epochs,train_examples,batch_size,learning_rate,seed,trainable_params,total_params,accuracy,f1_macro,train_time_sec,device,notes
+full,2026-11-11,sst2,distilbert-base-uncased,full,,,3.0,67349,32,2e-05,42,66955010,66955010,0.9106,0.9104,689.6,cuda,
+lora-r8,2026-11-11,sst2,distilbert-base-uncased,lora,8,16,3.0,67349,32,0.0001,42,739586,67694596,0.8922,0.8921,504.2,cuda,
+lora-r4,2026-11-11,sst2,distilbert-base-uncased,lora,4,8,3.0,67349,32,0.0001,42,665858,67620868,0.8911,0.891,466.0,cuda,
+lora-r16,2026-11-11,sst2,distilbert-base-uncased,lora,16,32,3.0,67349,32,0.0001,42,887042,67842052,0.8968,0.8966,480.6,cuda,
