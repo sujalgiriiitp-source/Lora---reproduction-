@@ -3,3 +3,8 @@ full,2026-11-11,sst2,distilbert-base-uncased,full,,,3.0,67349,32,2e-05,42,669550
 lora-r8,2026-11-11,sst2,distilbert-base-uncased,lora,8,16,3.0,67349,32,0.0001,42,739586,67694596,0.8922,0.8921,504.2,cuda,
 lora-r4,2026-11-11,sst2,distilbert-base-uncased,lora,4,8,3.0,67349,32,0.0001,42,665858,67620868,0.8911,0.891,466.0,cuda,
 lora-r16,2026-11-11,sst2,distilbert-base-uncased,lora,16,32,3.0,67349,32,0.0001,42,887042,67842052,0.8968,0.8966,480.6,cuda,
+full-seed123,2026-11-11,sst2,distilbert-base-uncased,full,,,3.0,67349,32,2e-05,123,66955010,66955010,0.9083,0.9081,737.0,cuda,
+lora-r16-seed123,2026-11-11,sst2,distilbert-base-uncased,lora,16,32,3.0,67349,32,0.0001,123,887042,67842052,0.8842,0.8840,510.6,cuda,
+full-agnews,2026-11-11,ag_news,distilbert-base-uncased,full,,,3.0,120000,32,2e-05,42,66956548,66956548,0.9467,0.9467,3296.8,cuda,
+lora-r16-agnews,2026-11-11,ag_news,distilbert-base-uncased,lora,16,32,3.0,120000,32,0.0001,42,888580,67845128,0.9346,0.9346,2457.2,cuda,
+lora-r16-all,2026-11-11,sst2,distilbert-base-uncased,lora,16,32,3.0,67349,32,0.0001,42,1919234,68874244,0.9071,0.9070,639.0,cuda,"target=q_lin,k_lin,v_lin,out_lin,lin1,lin2"
