@@ -78,6 +78,42 @@ study's main claim. The honest headline: LoRA gets most of the way
 there for ~1% of the parameters, but on this setup it does not fully
 close the gap.
 
+### Extensions (11 Nov 2026, same setup, Colab T4)
+
+| Run | Setting | Trainable params | Accuracy | F1 (macro) | Train time |
+| --- | --- | --- | --- | --- | --- |
+| Full FT, seed 123 | SST-2 | 66,955,010 (100%) | 0.9083 | 0.9081 | 737.0 s |
+| LoRA r=16, seed 123 | SST-2 | 887,042 (1.32%) | 0.8842 | 0.8840 | 510.6 s |
+| Full FT | AG News (test 7,600) | 66,956,548 (100%) | 0.9467 | 0.9467 | 3,296.8 s |
+| LoRA r=16 | AG News (test 7,600) | 888,580 (1.31%) | 0.9346 | 0.9346 | 2,457.2 s |
+| LoRA r=16, all-linear | SST-2 | 1,919,234 (2.79%) | 0.9071 | 0.9070 | 639.0 s |
+
+**Seed stability — a correction to the headline.** The full-vs-r16 gap is
+1.38pp at seed 42 but 2.41pp at seed 123 (r16: 0.8968 → 0.8842; full:
+0.9106 → 0.9083). "Within 1.38pp" is a seed-42 number, not a stable
+property — across the two seeds the gap is 1.4–2.4pp (mean ≈ 1.9pp).
+With only two seeds this is a range, not an error bar, and it is reported
+as one.
+
+**All-linear LoRA closes most of the gap.** Targeting all linear layers
+(`q_lin, k_lin, v_lin, out_lin, lin1, lin2`) at r=16 reaches 0.9071 —
+1.03pp above q/v-only r=16 (0.8968) and only 0.35pp below full
+fine-tuning (0.9106) — with 1,919,234 trainable parameters (2.79%).
+
+**The rank result generalises to AG News.** On a 4-class task with
+120,000 training examples: full 0.9467 vs LoRA r=16 0.9346, a 1.21pp gap
+— the same order as SST-2.
+
+**Provenance.** The extension session's GPU VM disconnected after the
+last run, so `experiments/runs.csv` was rebuilt from the trainer outputs
+saved in the session notebook (Drive, `05-extension-runs.ipynb`). Rows
+1–4 are the original log; rows 5–9 are the rebuilt rows. Two
+transcription errors in the rebuilt copy's old rows were corrected
+against the original log (r=8 total params, r=4 F1). The all-linear run's
+`notes` field was restored from the flag it provably used (1,919,234
+trainable params vs 887,042 for q/v-only). No accuracy number was
+estimated or adjusted.
+
 ## 4. Limitations
 
 - **One small model, one easy task.** DistilBERT + SST-2 cannot show
@@ -91,28 +127,37 @@ close the gap.
 - **No hyperparameter search.** Learning rates are the standard defaults
   for this setup (2e-5 full, 1e-4 LoRA), not tuned optima. A different
   learning rate could change the ranking.
-- **Single seed.** All runs use seed 42; no variance across seeds is
-  measured, so no error bars are claimed.
+- **Two seeds, not a distribution.** Full fine-tuning and LoRA r=16 were
+  repeated at seed 123; the other ranks were run once (seed 42). The
+  seed spread is a range (gap 1.38–2.41pp), not an error bar.
+- **AG News uses the test split for evaluation** (the dataset ships no
+  validation split); the SST-2 numbers use validation. The two datasets'
+  accuracies are not directly comparable to each other, only the
+  full-vs-LoRA gap within each dataset is.
 
 ## 5. Next steps
 
 1. ~~Complete the four full runs on a Colab T4 GPU and fill in Section 3
    from `experiments/runs.csv`.~~ **Done 11 Nov 2026** — all four runs
    finished, Section 3 filled from `experiments/runs.csv`.
-2. Repeat the best LoRA rank with a second seed to check stability.
-3. Try one extension — e.g. LoRA on all linear layers, or rank varying
-   per layer — and report whether it helps or not.
-4. Extend to a second dataset (AG News) to test whether the rank
-   ordering generalises beyond SST-2.
+2. ~~Repeat the best LoRA rank with a second seed to check stability.~~
+   **Done 11 Nov 2026** — seed 123: full 0.9083, r16 0.8842; gap
+   2.41pp vs 1.38pp at seed 42. Headline corrected to a range.
+3. ~~Try one extension — e.g. LoRA on all linear layers, or rank varying
+   per layer — and report whether it helps or not.~~ **Done 11 Nov 2026**
+   — all-linear r16 reaches 0.9071, only 0.35pp below full FT.
+4. ~~Extend to a second dataset (AG News) to test whether the rank
+   ordering generalises beyond SST-2.~~ **Done 11 Nov 2026** — AG News
+   gap 1.21pp (full 0.9467, r16 0.9346).
 
 ---
 
 **Resume bullet (filled from the real runs, 11 Nov 2026):**
 
-> "Reproduced LoRA (Hu et al., 2021) on DistilBERT + SST-2: matched full
-> fine-tuning within 1.38pp using 1.32% of trainable parameters (rank r=16);
-> ran a rank ablation (r=4/8/16) and reported accuracy, F1, and training
-> time for each setting."
+> "Reproduced LoRA (Hu et al., 2021) on DistilBERT + SST-2: rank ablation
+> (r=4/8/16) with full fine-tuning baseline; best rank r=16 within 1.38pp
+> of full (0.8968 vs 0.9106) using 1.32% of trainable parameters. Second
+> seed puts the gap at 1.4–2.4pp; LoRA on all linear layers reaches 0.9071
+> (within 0.35pp of full); the result generalises to AG News (gap 1.21pp)."
 
-All numbers from `experiments/runs.csv` — full fine-tuning 0.9106 accuracy
-(66,955,010 trainable params); LoRA r=16 0.8968 accuracy (887,042 params).
+All numbers from `experiments/runs.csv` — 9 runs, 11 Nov 2026, Colab T4.
